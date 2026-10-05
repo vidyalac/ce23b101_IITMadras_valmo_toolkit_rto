@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Valmo RTO Toolkit — Meesho DICE Challenge</title>
+<style>
+  :root{
+    --navy:#1B2A5E; --plum:#2B1B3D; --plum2:#4A2E63; --mag:#E8368F; --magD:#C41F76;
+    --purple:#7B5AA6; --green:#0F8F6A; --alert:#D9432B; --amber:#D08A1E;
+    --bg:#F6F2FB; --card:#FFFFFF; --line:#E6DDF2; --muted:#6F5F82; --text:#2B1B3D;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  :not([data-theme="light"]){}
+  *,*::before,*::after{box-sizing:inherit}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 16px 56px}
+  header{background:linear-gradient(135deg,var(--plum),var(--navy));color:#fff;
+    border-radius:14px;padding:22px 24px;margin-bottom:18px}
+  header h1{margin:0 0 6px;font-size:clamp(20px,3.2vw,28px);letter-spacing:-.3px}
+  header p{margin:0;opacity:.82;font-size:14px;max-width:70ch}
+  .tag{display:inline-block;background:var(--mag);color:#fff;font-size:11px;font-weight:700;
+    letter-spacing:1.3px;padding:4px 10px;border-radius:20px;margin-bottom:10px}
+  nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  nav button{flex:1 1 200px;background:var(--card);border:1.5px solid var(--line);color:var(--plum2);
+    padding:12px 14px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
+    transition:.15s;font-family:inherit}
+  nav button:hover{border-color:var(--purple)}
+  nav button[aria-selected="true"]{background:var(--magD);border-color:var(--magD);color:#fff}
+  .panel{display:none}.panel.on{display:block}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card h2{margin:0 0 4px;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:var(--magD)}
+  .card .sub{margin:0 0 14px;font-size:12.5px;color:var(--muted)}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;color:var(--plum2)}
+  select,input[type=number]{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;
+    font-size:14px;font-family:inherit;background:#fff;color:var(--text)}
+  input[type=range]{width:100%;accent-color:var(--magD)}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+  .row:last-child{border-bottom:0}
+  .row span:first-child{color:var(--muted)}
+  .row span:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+  .big{font-size:clamp(28px,5vw,40px);font-weight:800;line-height:1.1;letter-spacing:-1px}
+  .mono{font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .chk{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .chk:last-of-type{border-bottom:0}
+  .chk input{margin-top:3px;accent-color:var(--magD);width:16px;height:16px;flex:none}
+  .chk label{margin:0;font-weight:600;cursor:pointer;flex:1}
+  .chk .m{display:block;font-weight:400;color:var(--muted);font-size:12px}
+  .chk .v{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+  details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+  summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--purple)}
+  details pre{background:#FAF8FD;border:1px solid var(--line);border-radius:8px;padding:11px;
+    font-size:11.5px;overflow-x:auto;margin:9px 0 0;white-space:pre-wrap;color:var(--plum2)}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;font-style:italic}
+  .band{border-radius:10px;padding:14px 16px;color:#fff;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+  th{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  td:last-child,th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  footer{margin-top:28px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+  .btn{background:#fff;border:1.5px solid var(--line);color:var(--plum2);padding:9px 14px;
+    border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--purple)}
+  .btn.primary{background:var(--magD);border-color:var(--magD);color:#fff}
+  @media (max-width:560px){.wrap{padding:14px 12px 44px}header{padding:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="tag">MEESHO DICE CHALLENGE &middot; SEASON 3</span>
+  <h1>Valmo RTO Toolkit</h1>
+  <p>Four working models behind the submission: the rider difficulty-points engine, the full
+     return-to-origin economics simulator, the seller RTO&nbsp;Protect calculator, and a rider route
+     optimiser. Every formula is shown. Change any input and the numbers move.</p>
+</header>
+
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-p="rider">Rider points engine</button>
+  <button role="tab" aria-selected="false" data-p="sim">RTO economics simulator</button>
+  <button role="tab" aria-selected="false" data-p="seller">Seller RTO Protect</button>
+  <button role="tab" aria-selected="false" data-p="route">Rider route optimiser</button>
+</nav>
+
+<!-- ============ RIDER ============ -->
+<section class="panel on" id="rider">
+<div class="grid">
+  <div class="card">
+    <h2>One parcel</h2>
+    <p class="sub">Flat pay is a subsidy from hard routes to easy ones. This prices difficulty instead.</p>
+
+    <label for="r-dist">Distance band</label>
+    <select id="r-dist"><option value="1.00">Nearby, under 2 km</option>
+      <option value="1.15">Moderate, 2&ndash;7 km</option>
+      <option value="1.35">Far, over 7 km</option></select>
+
+    <label for="r-cod">Cash on delivery amount</label>
+    <select id="r-cod"><option value="1.00">Prepaid or under &#8377;500</option>
+      <option value="1.10">&#8377;500 or more</option></select>
+
+    <label for="r-first">Address history</label>
+    <select id="r-first"><option value="1.00">Delivered here before</option>
+      <option value="1.10">First-time address</option></select>
+
+    <label for="r-re">Attempt</label>
+    <select id="r-re"><option value="1.00">First attempt</option>
+      <option value="1.20">Re-attempt against a confirmed slot</option></select>
+
+    <label for="r-base">Base rate per delivery (&#8377;)</label>
+    <input type="number" id="r-base" value="14" min="1" step="0.5">
+  </div>
+
+  <div class="card">
+    <h2>What this parcel earns</h2>
+    <p class="sub">Points, not parcels &mdash; so a hard route counts for more than an easy one.</p>
+    <div class="big mono" id="r-pts" style="color:var(--magD)">1.00</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">difficulty points</div>
+    <div class="row"><span>Multiplier chain</span><span class="mono" id="r-chain">1.00</span></div>
+    <div class="row"><span>Payout for this parcel</span><span class="mono" id="r-pay">&#8377;14.00</span></div>
+    <div class="row"><span>Against flat rate</span><span class="mono" id="r-delta">&#8377;0.00</span></div>
+    <details><summary>Show the formula</summary>
+      <pre id="r-formula"></pre></details>
+  </div>
+
+  <div class="card">
+    <h2>Weekly target</h2>
+    <p class="sub">100 points a week, not 100 parcels. A rural rider on hard drops and an urban rider on easy
+       ones can both reach it &mdash; and skipping the hard parcel stops working.</p>
+    <label for="r-mix">Share of this rider's parcels that are hard (far, first-time or high&nbsp;COD)</label>
+    <input type="range" id="r-mix" min="0" max="100" value="30" step="5">
+    <div class="row"><span>Hard share</span><span class="mono" id="r-mixv">30%</span></div>
+    <div class="row"><span>Average points per parcel</span><span class="mono" id="r-avg">1.00</span></div>
+    <div class="row"><span>Parcels needed for 100 points</span><span class="mono" id="r-need">100</span></div>
+    <div class="row"><span>At 57 drops a day, days to target</span><span class="mono" id="r-days">1.8</span></div>
+    <p class="note">57 drops per pilot per day is derived from roughly 40&nbsp;lakh daily orders across
+       70,000+ delivery pilots.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============ SIMULATOR ============ -->
+<section class="panel" id="sim">
+<div class="grid">
+  <div class="card">
+    <h2>Baseline &mdash; from the case data pack</h2>
+    <p class="sub">Change any of these and every downstream number re-computes.</p>
+    <label for="s-codshare">Cash-on-delivery share of orders</label>
+    <input type="range" id="s-codshare" min="50" max="95" value="80" step="1">
+    <div class="row"><span>COD share</span><span class="mono" id="s-codsharev">80%</span></div>
+    <label for="s-codrto">RTO rate on COD orders</label>
+    <input type="range" id="s-codrto" min="5" max="35" value="20" step="1">
+    <div class="row"><span>COD RTO</span><span class="mono" id="s-codrtov">20%</span></div>
+    <label for="s-prerto">RTO rate on prepaid orders</label>
+    <input type="range" id="s-prerto" min="1" max="15" value="5" step="1">
+    <div class="row"><span>Prepaid RTO</span><span class="mono" id="s-prertov">5%</span></div>
+    <label for="s-fwd">Forward cost per shipment (&#8377;)</label>
+    <input type="number" id="s-fwd" value="50" min="10" step="1">
+    <label for="s-rev">Reverse cost per returned parcel (&#8377;)</label>
+    <input type="number" id="s-rev" value="120" min="10" step="1">
+    <label for="s-vol">Annual Valmo shipments (billions)</label>
+    <input type="number" id="s-vol" value="1.21" min="0.1" step="0.01">
+  </div>
+
+  <div class="card">
+    <h2>Initiatives &mdash; switch any on or off</h2>
+    <p class="sub">Impact in percentage points of blended RTO; cost in rupees per shipment.</p>
+    <div id="s-inits"></div>
+    <label for="s-hair">Overlap haircut &mdash; several initiatives attack the same bucket</label>
+    <input type="range" id="s-hair" min="0" max="40" value="15" step="1">
+    <div class="row"><span>Haircut applied</span><span class="mono" id="s-hairv">15%</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Result</h2>
+    <p class="sub">Per 100 orders shipped, then annualised.</p>
+    <div class="big mono" id="s-annual" style="color:var(--green)">&#8377;0 Cr</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">recoverable a year</div>
+    <table>
+      <tr><th>Line</th><th>Before</th><th>After</th></tr>
+      <tr><td>Blended RTO</td><td class="mono" id="s-r0">17.0%</td><td class="mono" id="s-r1">&mdash;</td></tr>
+      <tr><td>Delivered</td><td class="mono" id="s-d0">83.0</td><td class="mono" id="s-d1">&mdash;</td></tr>
+      <tr><td>Reverse spend</td><td class="mono" id="s-rv0">&mdash;</td><td class="mono" id="s-rv1">&mdash;</td></tr>
+      <tr><td>Programme cost</td><td class="mono">&mdash;</td><td class="mono" id="s-pg">&mdash;</td></tr>
+      <tr><td><b>Total spend</b></td><td class="mono" id="s-t0">&mdash;</td><td class="mono" id="s-t1">&mdash;</td></tr>
+      <tr><td>Cost per shipped order</td><td class="mono" id="s-cs0">&mdash;</td><td class="mono" id="s-cs1">&mdash;</td></tr>
+      <tr><td><b>Cost per delivered order</b></td><td class="mono" id="s-cd0">&mdash;</td><td class="mono" id="s-cd1">&mdash;</td></tr>
+      <tr><td>Wasted spend</td><td class="mono" id="s-w0">&mdash;</td><td class="mono" id="s-w1">&mdash;</td></tr>
+      <tr><td>Extra deliveries a year</td><td class="mono">&mdash;</td><td class="mono" id="s-extra">&mdash;</td></tr>
+    </table>
+    <details><summary>Show the reverse waterfall</summary><pre id="s-wf"></pre></details>
+    <details><summary>Show the formula</summary><pre id="s-formula"></pre></details>
+  </div>
+</div>
+</section>
+
+<!-- ============ SELLER ============ -->
+<section class="panel" id="seller">
+<div class="grid">
+  <div class="card">
+    <h2>A seller's position</h2>
+    <p class="sub">Charges are set against the <b>category</b> median, not a flat rate &mdash; apparel and
+       electronics are not comparable.</p>
+    <label for="x-med">Category median RTO rate</label>
+    <input type="range" id="x-med" min="5" max="35" value="17" step="1">
+    <div class="row"><span>Category median</span><span class="mono" id="x-medv">17%</span></div>
+    <label for="x-rto">This seller's RTO rate</label>
+    <input type="range" id="x-rto" min="2" max="50" value="25" step="1">
+    <div class="row"><span>Seller RTO</span><span class="mono" id="x-rtov">25%</span></div>
+    <label for="x-ord">Orders shipped per month</label>
+    <input type="number" id="x-ord" value="1000" min="10" step="10">
+    <label for="x-aov">Average order value (&#8377;)</label>
+    <input type="number" id="x-aov" value="265" min="50" step="5">
+  </div>
+
+  <div class="card">
+    <h2>Where they land</h2>
+    <p class="sub">Four bands. Bands C and D fund Band A &mdash; the pool is net-neutral to Valmo.</p>
+    <div class="band" id="x-band" style="background:var(--plum2)">
+      <div style="font-size:12px;letter-spacing:1.2px;font-weight:700;opacity:.85" id="x-bandname">BAND B</div>
+      <div style="font-size:20px;font-weight:800;margin-top:3px" id="x-bandlabel">Neutral</div>
+    </div>
+    <div class="big mono" id="x-amount">&#8377;0</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px" id="x-amountlabel">per month</div>
+    <div class="row"><span>Ratio to category median</span><span class="mono" id="x-ratio">1.47&times;</span></div>
+    <div class="row"><span>Returns per month</span><span class="mono" id="x-ret">250</span></div>
+    <div class="row"><span>Charge per returned parcel</span><span class="mono" id="x-per">&#8377;0</span></div>
+    <div class="row"><span>Cap at 5% of order value</span><span class="mono" id="x-cap">&#8377;13.25</span></div>
+    <div class="row"><span>As a share of monthly turnover</span><span class="mono" id="x-pct">0.00%</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Against the rest of the market</h2>
+    <p class="sub">Amazon and Flipkart both introduced seller penalties in August 2026. Neither charges
+       for a parcel the <i>customer</i> refuses.</p>
+    <table>
+      <tr><th>Platform</th><th>Trigger</th><th>Charge</th></tr>
+      <tr><td>Flipkart</td><td>Missed dispatch</td><td>&#8377;30</td></tr>
+      <tr><td>Flipkart</td><td>Seller cancellation</td><td>&#8377;60</td></tr>
+      <tr><td>Flipkart</td><td>Delayed, then cancelled</td><td>&#8377;90</td></tr>
+      <tr><td>Amazon</td><td>Seller cancellation</td><td id="x-amz">&#8377;26.50</td></tr>
+      <tr><td><b>Valmo</b></td><td><b>Customer refusal, worst band</b></td><td><b>&#8377;12</b></td></tr>
+    </table>
+    <div class="row" style="margin-top:10px"><span>Ours against Amazon's</span><span class="mono" id="x-vsamz">45%</span></div>
+    <div class="row"><span>Ours against Flipkart's</span><span class="mono">20%</span></div>
+    <p class="note">Not like-for-like: theirs fire on seller cancellation, ours on customer refusal.
+       The fair claim is that ours is smaller than either and is the only one with a rebate attached.</p>
+    <details><summary>Show the band rules</summary><pre id="x-rules"></pre></details>
+  </div>
+</div>
+<div class="card" style="margin-top:14px;border-left:4px solid var(--amber)">
+  <h2 style="color:var(--amber)">What this model cannot tell you</h2>
+  <p class="sub" style="margin:0">No platform publishes the distribution of RTO rates across its sellers.
+     It is the one input this scheme needs and the one we cannot obtain from outside. If every seller sits
+     between 15% and 19%, there is nothing to redistribute. If the spread runs 5% to 40%, the scheme is
+     powerful. The seller scorecard in days 0&ndash;30 produces that distribution &mdash; and the levy does
+     not switch on until it does. This calculator is therefore a <b>rate card</b>, not a forecast.</p>
+</div>
+</section>
+
+
+<!-- ============ ROUTE ============ -->
+<section class="panel" id="route">
+<div class="grid">
+  <div class="card" style="grid-column:1/-1">
+    <h2>A rider's zone for today</h2>
+    <p class="sub">Click the map to add stops, or generate a random zone. The hub is fixed. Each stop can
+       carry a time window &mdash; the optimiser will not promise a slot it cannot keep.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn" id="rt-random">Generate 14 stops</button>
+      <button class="btn" id="rt-clear">Clear stops</button>
+      <button class="btn primary" id="rt-opt">Optimise route</button>
+    </div>
+    <canvas id="rt-canvas" width="900" height="520" style="width:100%;max-width:900px;height:auto;
+      border:1.5px solid var(--line);border-radius:10px;background:#FAF8FD;cursor:crosshair;touch-action:none"></canvas>
+    <p class="note">Grey dot = hub. Numbers show the optimised visiting order once you run it.
+       1 map unit &#8776; 120 metres.</p>
+  </div>
+
+  <div class="card">
+    <h2>Zone settings</h2>
+    <label for="rt-speed">Average road speed (km/h)</label>
+    <input type="range" id="rt-speed" min="10" max="35" value="18" step="1">
+    <div class="row"><span>Speed</span><span class="mono" id="rt-speedv">18 km/h</span></div>
+    <label for="rt-service">Average time at each stop (minutes)</label>
+    <input type="range" id="rt-service" min="2" max="12" value="5" step="1">
+    <div class="row"><span>Service time</span><span class="mono" id="rt-servicev">5 min</span></div>
+    <label for="rt-mileage">Scooter mileage (km per litre)</label>
+    <input type="number" id="rt-mileage" value="45" min="15" step="1">
+    <label for="rt-fuel">Fuel price (&#8377; per litre)</label>
+    <input type="number" id="rt-fuel" value="104" min="50" step="1">
+    <label for="rt-start">Shift start</label>
+    <input type="number" id="rt-start" value="10.0" min="0" max="23.5" step="0.25">
+    <p class="note">Shift start as a decimal hour &mdash; 10.0 means 10:00&nbsp;AM, 14.5 means 2:30&nbsp;PM.</p>
+  </div>
+
+  <div class="card">
+    <h2>Unoptimised &mdash; visit in the order added</h2>
+    <div class="row"><span>Stops</span><span class="mono" id="rt-n0">0</span></div>
+    <div class="row"><span>Route distance</span><span class="mono" id="rt-dist0">0.0 km</span></div>
+    <div class="row"><span>Drive time</span><span class="mono" id="rt-drive0">0 min</span></div>
+    <div class="row"><span>Total shift time</span><span class="mono" id="rt-time0">0 min</span></div>
+    <div class="row"><span>Fuel cost</span><span class="mono" id="rt-fuelcost0">&#8377;0</span></div>
+    <div class="row"><span>Time-window breaches</span><span class="mono" id="rt-breach0">0</span></div>
+  </div>
+
+  <div class="card" style="border:1.5px solid var(--magD)">
+    <h2>Optimised &mdash; nearest-neighbour + 2-opt</h2>
+    <div class="row"><span>Stops</span><span class="mono" id="rt-n1">0</span></div>
+    <div class="row"><span>Route distance</span><span class="mono" id="rt-dist1">0.0 km</span></div>
+    <div class="row"><span>Drive time</span><span class="mono" id="rt-drive1">0 min</span></div>
+    <div class="row"><span>Total shift time</span><span class="mono" id="rt-time1">0 min</span></div>
+    <div class="row"><span>Fuel cost</span><span class="mono" id="rt-fuelcost1">&#8377;0</span></div>
+    <div class="row"><span>Time-window breaches</span><span class="mono" id="rt-breach1">0</span></div>
+    <div class="big mono" id="rt-saved" style="color:var(--green);margin-top:10px">&#8377;0 saved</div>
+    <div style="font-size:12.5px;color:var(--muted)">distance and fuel, same stops</div>
+    <details><summary>Show the algorithm</summary><pre id="rt-algo"></pre></details>
+  </div>
+</div>
+<div class="card" style="margin-top:14px;border-left:4px solid var(--amber)">
+  <h2 style="color:var(--amber)">What this prototype does and does not do</h2>
+  <p class="sub" style="margin:0">Stops sit on a synthetic grid, not real road geometry or live traffic &mdash;
+     a published page cannot call a mapping API, so this is a coordinate-plane stand-in for one. The
+     optimiser itself is real: nearest-neighbour construction followed by 2-opt improvement, the standard
+     approach for a single-vehicle routing problem this size. Wired to an actual roads API (for real
+     distances) and a live order feed (for real stops and time windows), the same algorithm is the one a
+     production version would run.</p>
+</div>
+</section>
+
+<footer>
+  Built for the Meesho DICE Challenge Season 3 &middot; Business Track<br>
+  Unit economics from the case data pack. Volume from Meesho FY26 results.
+  Competitor charges from published August 2026 seller-fee announcements.<br>
+  Assumptions are labelled throughout. No figure here is a company disclosure unless stated.
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id)};
+  var inr=function(n,d){return "\u20B9"+Number(n).toLocaleString("en-IN",{minimumFractionDigits:d||0,maximumFractionDigits:d||0})};
+
+  /* ---------- tabs ---------- */
+  var tabs=document.querySelectorAll('nav button');
+  tabs.forEach(function(b){
+    b.addEventListener('click',function(){
+      tabs.forEach(function(x){x.setAttribute('aria-selected','false')});
+      b.setAttribute('aria-selected','true');
+      document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on')});
+      $(b.dataset.p).classList.add('on');
+    });
+  });
+
+  /* ================= RIDER ================= */
+  function rider(){
+    var d=+$('r-dist').value, c=+$('r-cod').value, f=+$('r-first').value, r=+$('r-re').value, base=+$('r-base').value||0;
+    var pts=d*c*f*r, pay=base*pts;
+    $('r-pts').textContent=pts.toFixed(2);
+    $('r-chain').textContent=d.toFixed(2)+' \u00D7 '+c.toFixed(2)+' \u00D7 '+f.toFixed(2)+' \u00D7 '+r.toFixed(2);
+    $('r-pay').textContent=inr(pay,2);
+    $('r-delta').textContent=(pay-base>=0?'+':'')+inr(pay-base,2);
+    $('r-formula').textContent=
+      'points   = distance \u00D7 COD amount \u00D7 first-time \u00D7 re-attempt\n'+
+      '         = '+d.toFixed(2)+' \u00D7 '+c.toFixed(2)+' \u00D7 '+f.toFixed(2)+' \u00D7 '+r.toFixed(2)+'\n'+
+      '         = '+pts.toFixed(3)+'\n\n'+
+      'payout   = base rate \u00D7 points\n'+
+      '         = '+inr(base,2)+' \u00D7 '+pts.toFixed(3)+'\n'+
+      '         = '+inr(pay,2)+'\n\n'+
+      'Base rate is inferred from the \u20B921 last-mile node cost in the data pack.\n'+
+      'The pool is funded from RTO savings, so total rider earnings rise.';
+    var mix=+$('r-mix').value;
+    $('r-mixv').textContent=mix+'%';
+    var avg=(mix/100)*1.30+(1-mix/100)*1.00;
+    var need=100/avg;
+    $('r-avg').textContent=avg.toFixed(2);
+    $('r-need').textContent=Math.ceil(need);
+    $('r-days').textContent=(need/57).toFixed(1);
+  }
+  ['r-dist','r-cod','r-first','r-re','r-base','r-mix'].forEach(function(id){
+    $(id).addEventListener('input',rider)});
+
+  /* ================= SIMULATOR ================= */
+  var INITS=[
+    {k:'t3', n:'3-Touch Handshake + Proof of Attempt', pp:2.45, c:0.60, on:true,  w:1},
+    {k:'rp', n:'Risk-weighted rider pay (bonus pool)',  pp:0.30, c:1.25, on:true,  w:1},
+    {k:'lt', n:'Live rider tracking',                  pp:0.61, c:0.20, on:true,  w:2},
+    {k:'tw', n:'Coarse time windows, top 30% risk',    pp:0.47, c:0.15, on:true,  w:2},
+    {k:'ai', n:'Address intelligence + DIGIPIN',       pp:1.20, c:0.25, on:true,  w:2},
+    {k:'hm', n:'Hub remap + micro-hubs',               pp:0.50, c:0.00, on:true,  w:2},
+    {k:'pp', n:'Risk-targeted prepaid + account scoring',pp:2.01,c:1.05, on:true, w:3},
+    {k:'sb', n:'Seller RTO Protect (unsized \u2014 upside)',pp:0.00,c:0.05,on:false,w:3}
+  ];
+  var box=$('s-inits');
+  INITS.forEach(function(i){
+    var d=document.createElement('div'); d.className='chk';
+    d.innerHTML='<input type="checkbox" id="i-'+i.k+'"'+(i.on?' checked':'')+'>'+
+      '<label for="i-'+i.k+'">'+i.n+'<span class="m">Wave '+i.w+
+      ' \u00B7 '+(i.pp>0?i.pp.toFixed(2)+' pp':'not sized')+' \u00B7 '+inr(i.c,2)+'/shipment</span></label>'+
+      '<span class="v">'+(i.pp>0?i.pp.toFixed(2):'\u2014')+'</span>';
+    box.appendChild(d);
+    d.querySelector('input').addEventListener('change',sim);
+  });
+
+  var WF={resale:{s:0.12,c:36},liq:{s:0.15,c:25},back:{s:0.73,c:95}};
+
+  function sim(){
+    var cs=+$('s-codshare').value/100, cr=+$('s-codrto').value/100, pr=+$('s-prerto').value/100;
+    var FWD=+$('s-fwd').value||0, REV=+$('s-rev').value||0, VOL=(+$('s-vol').value||0)*1e9;
+    var hair=+$('s-hair').value/100;
+    $('s-codsharev').textContent=(cs*100).toFixed(0)+'%';
+    $('s-codrtov').textContent=(cr*100).toFixed(0)+'%';
+    $('s-prertov').textContent=(pr*100).toFixed(0)+'%';
+    $('s-hairv').textContent=(hair*100).toFixed(0)+'%';
+
+    var blend=cs*cr+(1-cs)*pr;
+    var rto0=blend*100, del0=100-rto0;
+    var rev0=rto0*REV, tot0=100*FWD+rev0;
+    var cps0=tot0/100, cpd0=del0>0?tot0/del0:0, w0=tot0>0?rto0*(FWD+REV)/tot0:0;
+
+    var gross=0, prog=0;
+    INITS.forEach(function(i){
+      if($('i-'+i.k).checked){ gross+=i.pp; prog+=i.c*100; }
+    });
+    var net=gross*(1-hair);
+    var rto1=Math.max(rto0-net,0), del1=100-rto1;
+    var re=WF.resale.s*rto1, lq=WF.liq.s*rto1, bk=WF.back.s*rto1;
+    var rev1=re*WF.resale.c+lq*WF.liq.c+bk*WF.back.c-re*FWD;
+    if(rev1<0) rev1=0;
+    var tot1=100*FWD+rev1+prog;
+    var cps1=tot1/100, cpd1=del1>0?tot1/del1:0, w1=tot1>0?rto1*(FWD+REV)/tot1:0;
+    var annual=(cps0-cps1)*VOL/1e7;
+
+    $('s-r0').textContent=rto0.toFixed(2)+'%'; $('s-r1').textContent=rto1.toFixed(2)+'%';
+    $('s-d0').textContent=del0.toFixed(2);     $('s-d1').textContent=del1.toFixed(2);
+    $('s-rv0').textContent=inr(rev0);          $('s-rv1').textContent=inr(rev1);
+    $('s-pg').textContent=inr(prog);
+    $('s-t0').textContent=inr(tot0);           $('s-t1').textContent=inr(tot1);
+    $('s-cs0').textContent=inr(cps0,2);        $('s-cs1').textContent=inr(cps1,2);
+    $('s-cd0').textContent=inr(cpd0,2);        $('s-cd1').textContent=inr(cpd1,2);
+    $('s-w0').textContent=(w0*100).toFixed(1)+'%'; $('s-w1').textContent=(w1*100).toFixed(1)+'%';
+    $('s-extra').textContent=(net/100*VOL/1e6).toFixed(0)+' mn';
+    $('s-annual').textContent=inr(Math.round(annual))+' Cr';
+    $('s-annual').style.color = annual>=0 ? 'var(--green)' : 'var(--alert)';
+
+    $('s-wf').textContent=
+      'Applied to the '+rto1.toFixed(2)+' parcels per 100 that still fail:\n\n'+
+      '  express local resale  '+(WF.resale.s*100).toFixed(0)+'%  '+re.toFixed(2)+' parcels \u00D7 '+inr(WF.resale.c)+'  = '+inr(re*WF.resale.c)+'\n'+
+      '    less avoided future forward leg   '+re.toFixed(2)+' \u00D7 '+inr(FWD)+'  = \u2212'+inr(re*FWD)+'\n'+
+      '  destination liquidation '+(WF.liq.s*100).toFixed(0)+'%  '+lq.toFixed(2)+' parcels \u00D7 '+inr(WF.liq.c)+'  = '+inr(lq*WF.liq.c)+'\n'+
+      '  consolidated backhaul   '+(WF.back.s*100).toFixed(0)+'%  '+bk.toFixed(2)+' parcels \u00D7 '+inr(WF.back.c)+'  = '+inr(bk*WF.back.c)+'\n\n'+
+      '  total reverse spend  '+inr(rev1)+'   (naive: '+inr(rto1*REV)+')\n'+
+      '  blended per parcel   '+(rto1>0?inr(rev1/rto1,2):'\u2014')+'   against '+inr(REV)+' today';
+
+    $('s-formula').textContent=
+      'blended RTO  = COD share \u00D7 COD RTO + prepaid share \u00D7 prepaid RTO\n'+
+      '             = '+cs.toFixed(2)+' \u00D7 '+cr.toFixed(2)+' + '+(1-cs).toFixed(2)+' \u00D7 '+pr.toFixed(2)+' = '+(blend*100).toFixed(2)+'%\n\n'+
+      'gross impact = sum of selected initiatives        = '+gross.toFixed(2)+' pp\n'+
+      'net impact   = gross \u00D7 (1 \u2212 overlap haircut)  = '+net.toFixed(2)+' pp\n'+
+      'RTO after    = '+rto0.toFixed(2)+' \u2212 '+net.toFixed(2)+'  = '+rto1.toFixed(2)+'%\n\n'+
+      'total spend  = forward + reverse + programme\n'+
+      '  before     = '+inr(100*FWD)+' + '+inr(rev0)+'               = '+inr(tot0)+'\n'+
+      '  after      = '+inr(100*FWD)+' + '+inr(rev1)+' + '+inr(prog)+' = '+inr(tot1)+'\n\n'+
+      'annual value = (cost per shipped before \u2212 after) \u00D7 volume\n'+
+      '             = ('+inr(cps0,2)+' \u2212 '+inr(cps1,2)+') \u00D7 '+(VOL/1e9).toFixed(2)+' bn = '+inr(Math.round(annual))+' Cr\n\n'+
+      'Note on basis: a prevented RTO saves the \u20B9'+REV+' reverse leg in cash. The \u20B9'+FWD+' forward\n'+
+      'leg is spent either way \u2014 it simply buys a delivery instead of a return.';
+  }
+  ['s-codshare','s-codrto','s-prerto','s-fwd','s-rev','s-vol','s-hair'].forEach(function(id){
+    $(id).addEventListener('input',sim)});
+
+  /* ================= SELLER ================= */
+  var BANDS=[
+    {max:0.7, name:'BAND A', label:'Rebate',  col:'var(--green)'},
+    {max:1.3, name:'BAND B', label:'Neutral', col:'var(--plum2)'},
+    {max:1.8, name:'BAND C', label:'Levy',    col:'var(--amber)'},
+    {max:1e9, name:'BAND D', label:'Levy',    col:'var(--alert)'}
+  ];
+  function seller(){
+    var med=+$('x-med').value/100, rto=+$('x-rto').value/100;
+    var ord=+$('x-ord').value||0, aov=+$('x-aov').value||0;
+    $('x-medv').textContent=(med*100).toFixed(0)+'%';
+    $('x-rtov').textContent=(rto*100).toFixed(0)+'%';
+    var ratio=med>0?rto/med:0;
+    var b=BANDS.find(function(x){return ratio<x.max});
+    var returns=ord*rto, delivered=ord-returns, cap=aov*0.05;
+    var per=0, amount=0, lab='per month';
+    if(b.name==='BAND A'){ per=0.40; amount=delivered*0.40; lab='rebate per month'; }
+    else if(b.name==='BAND C'){ per=Math.min(6,cap); amount=-returns*per; lab='levy per month'; }
+    else if(b.name==='BAND D'){ per=Math.min(12,cap); amount=-returns*per; lab='levy per month'; }
+    $('x-band').style.background=b.col;
+    $('x-bandname').textContent=b.name;
+    $('x-bandlabel').textContent=b.name==='BAND A'?'Rebate \u2014 paid to this seller':
+      (b.name==='BAND B'?'Neutral \u2014 no levy, no rebate':'Levy \u2014 funds the rebate pool');
+    $('x-amount').textContent=(amount>0?'+':'')+inr(Math.round(amount));
+    $('x-amount').style.color = amount>0?'var(--green)':(amount<0?'var(--alert)':'var(--plum2)');
+    $('x-amountlabel').textContent=lab;
+    $('x-ratio').textContent=ratio.toFixed(2)+'\u00D7';
+    $('x-ret').textContent=Math.round(returns).toLocaleString('en-IN');
+    $('x-per').textContent=b.name==='BAND A'?'+'+inr(0.40,2)+' per delivered':(per>0?inr(per,2):'\u20B90');
+    $('x-cap').textContent=inr(cap,2);
+    var turn=ord*aov;
+    $('x-pct').textContent=turn>0?(Math.abs(amount)/turn*100).toFixed(2)+'%':'0.00%';
+    var amz=aov*0.10;
+    $('x-amz').textContent='up to '+inr(amz,2);
+    $('x-vsamz').textContent=amz>0?(Math.min(12,cap)/amz*100).toFixed(0)+'%':'\u2014';
+    $('x-rules').textContent=
+      'ratio = seller RTO \u00F7 category median RTO\n\n'+
+      '  below 0.70\u00D7   BAND A   rebate  +\u20B90.40 per delivered order\n'+
+      '  0.70 \u2013 1.30\u00D7  BAND B   neutral  no levy, no rebate\n'+
+      '  1.30 \u2013 1.80\u00D7  BAND C   levy     \u20B96 per returned parcel\n'+
+      '  above 1.80\u00D7   BAND D   levy     \u20B912 per returned parcel\n\n'+
+      'All levies capped at 5% of order value, so a low-priced item\n'+
+      'can never carry a charge larger than its margin.\n\n'+
+      'Guardrails: new sellers exempt 90 days \u00B7 no account-locking, ever\n'+
+      'levy waived where Valmo caused it \u00B7 14-day dispute window\n'+
+      'Bands C and D fund Band A \u2014 net-neutral to Valmo by design.';
+  }
+  ['x-med','x-rto','x-ord','x-aov'].forEach(function(id){
+    $(id).addEventListener('input',seller)});
+
+
+  /* ================= ROUTE OPTIMISER ================= */
+  (function(){
+    var cv=$('rt-canvas'), ctx=cv.getContext('2d');
+    var W=cv.width, H=cv.height, UNIT_KM=0.12; // 1 canvas unit of grid = 120 m, but we work in px->grid below
+    var GRID=40; // px per grid cell, 1 cell = 120 m
+    var HUB={x:W/2,y:H/2};
+    var stops=[]; // {x,y,tw:[startHr,endHr] or null}
+    var orderUnopt=[], orderOpt=[];
+
+    function dpx(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+    function km(a,b){ return dpx(a,b)/GRID*UNIT_KM; }
+
+    function redraw(highlightOpt){
+      ctx.clearRect(0,0,W,H);
+      // grid
+      ctx.strokeStyle='#ECE4F5'; ctx.lineWidth=1;
+      for(var gx=0; gx<=W; gx+=GRID){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+      for(var gy=0; gy<=H; gy+=GRID){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+
+      function drawRoute(order,color,dash){
+        if(order.length<1) return;
+        ctx.strokeStyle=color; ctx.lineWidth=2.4;
+        if(dash) ctx.setLineDash([6,5]); else ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(HUB.x,HUB.y);
+        order.forEach(function(i){ ctx.lineTo(stops[i].x,stops[i].y); });
+        ctx.lineTo(HUB.x,HUB.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if(orderUnopt.length) drawRoute(orderUnopt,'#CFC2E4',true);
+      if(highlightOpt && orderOpt.length) drawRoute(orderOpt,'#C41F76',false);
+
+      // hub
+      ctx.fillStyle='#4A2E63';
+      ctx.beginPath(); ctx.arc(HUB.x,HUB.y,10,0,7); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('H',HUB.x,HUB.y+1);
+
+      // stops
+      var showOrder = highlightOpt && orderOpt.length ? orderOpt : null;
+      stops.forEach(function(st,i){
+        var idx = showOrder ? showOrder.indexOf(i) : -1;
+        ctx.fillStyle = st.tw ? '#D08A1E' : '#E8368F';
+        ctx.beginPath(); ctx.arc(st.x,st.y,9,0,7); ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif';
+        ctx.fillText(idx>=0?String(idx+1):String(i+1), st.x, st.y+1);
+        if(st.tw){
+          ctx.fillStyle='#6F5F82'; ctx.font='9px sans-serif'; ctx.textBaseline='top';
+          ctx.fillText(st.tw[0].toFixed(1)+'-'+st.tw[1].toFixed(1), st.x, st.y+13);
+          ctx.textBaseline='middle';
+        }
+      });
+    }
+
+    function addStop(x,y,tw){
+      stops.push({x:x,y:y,tw:tw||null});
+      orderUnopt=stops.map(function(_,i){return i});
+      orderOpt=[];
+      compute();
+    }
+
+    cv.addEventListener('click', function(e){
+      var r=cv.getBoundingClientRect();
+      var x=(e.clientX-r.left)*(W/r.width), y=(e.clientY-r.top)*(H/r.height);
+      var tw=null;
+      if(Math.random()<0.45){
+        var s=10+Math.random()*7; tw=[Math.round(s*4)/4, Math.round((s+1+Math.random()*1.5)*4)/4];
+      }
+      addStop(x,y,tw);
+    });
+
+    $('rt-random').addEventListener('click', function(){
+      stops=[]; 
+      for(var i=0;i<14;i++){
+        var ang=Math.random()*Math.PI*2, r=60+Math.random()*(W/2-70);
+        var x=Math.max(20,Math.min(W-20,HUB.x+Math.cos(ang)*r));
+        var y=Math.max(20,Math.min(H-20,HUB.y+Math.sin(ang)*r));
+        var tw=null;
+        if(Math.random()<0.45){
+          var s=10+Math.random()*7; tw=[Math.round(s*4)/4, Math.round((s+1+Math.random()*1.5)*4)/4];
+        }
+        stops.push({x:x,y:y,tw:tw});
+      }
+      orderUnopt=stops.map(function(_,i){return i});
+      orderOpt=[];
+      compute();
+    });
+    $('rt-clear').addEventListener('click', function(){
+      stops=[]; orderUnopt=[]; orderOpt=[]; compute();
+    });
+
+    function routeKm(order){
+      if(order.length===0) return 0;
+      var d=km(HUB,stops[order[0]]);
+      for(var i=0;i<order.length-1;i++) d+=km(stops[order[i]],stops[order[i+1]]);
+      d+=km(stops[order[order.length-1]],HUB);
+      return d;
+    }
+
+    function nearestNeighbour(){
+      if(stops.length===0) return [];
+      var remain=stops.map(function(_,i){return i});
+      var order=[], cur=HUB;
+      while(remain.length){
+        var bi=0,bd=Infinity;
+        remain.forEach(function(i,k){ var d=km(cur,stops[i]); if(d<bd){bd=d;bi=k;} });
+        var pick=remain.splice(bi,1)[0];
+        order.push(pick); cur=stops[pick];
+      }
+      return order;
+    }
+
+    function twoOpt(order){
+      var improved=true, guard=0;
+      while(improved && guard<200){
+        improved=false; guard++;
+        for(var i=0;i<order.length-1;i++){
+          for(var j=i+1;j<order.length;j++){
+            var a=i===0?HUB:stops[order[i-1]], b=stops[order[i]];
+            var c=stops[order[j]], d=j===order.length-1?HUB:stops[order[j+1]];
+            var before=km(a,b)+km(c,d);
+            var after=km(a,c)+km(b,d);
+            if(after+1e-9<before){
+              var seg=order.slice(i,j+1).reverse();
+              order=order.slice(0,i).concat(seg,order.slice(j+1));
+              improved=true;
+            }
+          }
+        }
+      }
+      return order;
+    }
+
+    function timeWindowBreaches(order){
+      var speed=+$('rt-speed').value, service=+$('rt-service').value/60;
+      var t=+$('rt-start').value, cur=HUB, breaches=0;
+      order.forEach(function(i){
+        var st=stops[i], dkm=km(cur,st);
+        t += dkm/speed;
+        if(st.tw && (t<st.tw[0] || t>st.tw[1])) breaches++;
+        t += service;
+        cur=st;
+      });
+      return breaches;
+    }
+
+    function fuelCost(distKm){
+      var mileage=+$('rt-mileage').value||45, price=+$('rt-fuel').value||0;
+      return (distKm/mileage)*price;
+    }
+
+    function fillSide(suffix, order){
+      var speed=+$('rt-speed').value, service=+$('rt-service').value/60;
+      var d=routeKm(order);
+      var driveMin=order.length? (d/speed)*60 : 0;
+      var serviceMin=order.length*service*60;
+      $('rt-n'+suffix).textContent=order.length;
+      $('rt-dist'+suffix).textContent=d.toFixed(1)+' km';
+      $('rt-drive'+suffix).textContent=Math.round(driveMin)+' min';
+      $('rt-time'+suffix).textContent=Math.round(driveMin+serviceMin)+' min';
+      $('rt-fuelcost'+suffix).textContent='₹'+fuelCost(d).toFixed(0);
+      $('rt-breach'+suffix).textContent=timeWindowBreaches(order);
+      return {d:d, fuel:fuelCost(d)};
+    }
+
+    function compute(){
+      $('rt-speedv').textContent=$('rt-speed').value+' km/h';
+      $('rt-servicev').textContent=$('rt-service').value+' min';
+      if(stops.length===0){
+        ['0','1'].forEach(function(suf){
+          $('rt-n'+suf).textContent='0'; $('rt-dist'+suf).textContent='0.0 km';
+          $('rt-drive'+suf).textContent='0 min'; $('rt-time'+suf).textContent='0 min';
+          $('rt-fuelcost'+suf).textContent='₹0'; $('rt-breach'+suf).textContent='0';
+        });
+        $('rt-saved').textContent='₹0 saved';
+        redraw(false);
+        return;
+      }
+      orderUnopt = stops.map(function(_,i){return i});
+      var u=fillSide('0',orderUnopt);
+      if(orderOpt.length===stops.length){
+        var o=fillSide('1',orderOpt);
+        $('rt-saved').textContent='₹'+Math.max(0,u.fuel-o.fuel).toFixed(0)+' saved';
+      } else {
+        ['n1','dist1','drive1','time1','fuelcost1','breach1'].forEach(function(id){$(id).textContent='—'});
+        $('rt-saved').textContent='run optimiser →';
+      }
+      redraw(orderOpt.length===stops.length);
+    }
+
+    $('rt-opt').addEventListener('click', function(){
+      if(stops.length<2){ orderOpt=stops.map(function(_,i){return i}); compute(); return; }
+      var nn=nearestNeighbour();
+      orderOpt=twoOpt(nn.slice());
+      compute();
+    });
+
+    ['rt-speed','rt-service','rt-mileage','rt-fuel','rt-start'].forEach(function(id){
+      $(id).addEventListener('input', compute);
+    });
+
+    $('rt-algo').textContent=
+      'STEP 1 \u2014 nearest-neighbour construction\n'+
+      '  start at the hub, repeatedly jump to the closest\n'+
+      '  unvisited stop, until all stops are placed.\n\n'+
+      'STEP 2 \u2014 2-opt local search\n'+
+      '  for every pair of edges (a-b) and (c-d) in the route,\n'+
+      '  test reversing the segment between them. If that\n'+
+      '  shortens the route, keep it. Repeat until no swap\n'+
+      '  helps or 200 passes are reached.\n\n'+
+      'This is the standard construction + improvement pair\n'+
+      'for a single-vehicle routing problem at this scale\n'+
+      '(under ~30 stops). Time windows are checked but not\n'+
+      'yet part of the objective \u2014 a feasibility count, not\n'+
+      'a hard constraint, which is the honest scope for a\n'+
+      'prototype built without a real road network.';
+
+    compute();
+  })();
+
+  rider(); sim(); seller();
+})();
+</script>
+</body>
+</html>
